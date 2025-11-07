@@ -77,6 +77,11 @@ def index():
     """Serve the main HTML file"""
     return send_from_directory('.', 'index.html')
 
+@app.route('/api/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok', 'service': 'backend'}), 200
+
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve static files"""
@@ -520,13 +525,22 @@ def generate_report():
                         continue
                     
                     # Nome e ID
+                    nome_solucao = solution_data.get('nome') or solution_data.get('nome_curto', 'N/A')
+                    linha_tronco = solution_data.get('linha') or solution_data.get('tronco', 'N/A')
+                    sinal_dados = solution_data.get('sinal_dados', '')
+                    linha_text = f"Linha {linha_tronco}" if linha_tronco != 'N/A' else ''
                     elements.append(Paragraph(
-                        f"<b>{solution_data.get('nome', 'N/A')}</b> ({solution_data.get('id', 'N/A')}) • Tronco {solution_data.get('tronco', 'N/A')}",
+                        f"<b>{nome_solucao}</b> ({solution_data.get('id', 'N/A')}) {linha_text} {sinal_dados}".strip(),
                         styles['Normal']
                     ))
                     elements.append(Spacer(1, 6))
                     
-                    # Descrição
+                    # Descrição Simplificada (prioridade)
+                    if solution_data.get('descricao_para_leigos'):
+                        elements.append(Paragraph(f"<b>Descrição Simplificada:</b> {solution_data.get('descricao_para_leigos')}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
+                    # Descrição (fallback)
                     if solution_data.get('descricao'):
                         elements.append(Paragraph(f"<b>Descrição:</b> {solution_data.get('descricao')}", styles['Normal']))
                         elements.append(Spacer(1, 6))
@@ -539,18 +553,25 @@ def generate_report():
                         elements.append(Spacer(1, 6))
                     
                     # Custo
-                    if solution_data.get('custo'):
-                        custo = solution_data.get('custo', {})
-                        custo_text = []
-                        if custo.get('mensal_brl'):
-                            custo_text.append(f"Mensal: R$ {custo.get('mensal_brl'):,.2f}")
-                        if custo.get('anual_brl'):
-                            custo_text.append(f"Anual: R$ {custo.get('anual_brl'):,.2f}")
-                        if custo.get('setup_brl'):
-                            custo_text.append(f"Setup: R$ {custo.get('setup_brl'):,.2f}")
-                        if custo_text:
-                            elements.append(Paragraph(f"<b>Custo:</b> {', '.join(custo_text)}", styles['Normal']))
-                            elements.append(Spacer(1, 6))
+                    custo_text = []
+                    if solution_data.get('preco_cliente'):
+                        preco = solution_data.get('preco_cliente', {})
+                        if preco.get('capex_brl'):
+                            custo_text.append(f"CAPEX: R$ {preco.get('capex_brl'):,.2f}")
+                        if preco.get('opex_mensal_brl'):
+                            custo_text.append(f"OPEX Mensal: R$ {preco.get('opex_mensal_brl'):,.2f}")
+                        if preco.get('preco_cliente_ano1_brl'):
+                            custo_text.append(f"Custo Ano 1 (Cliente): R$ {preco.get('preco_cliente_ano1_brl'):,.2f}")
+                    else:
+                        if solution_data.get('capex_brl'):
+                            custo_text.append(f"CAPEX: R$ {solution_data.get('capex_brl'):,.2f}")
+                        if solution_data.get('opex_mensal_brl'):
+                            custo_text.append(f"OPEX Mensal: R$ {solution_data.get('opex_mensal_brl'):,.2f}")
+                    if solution_data.get('custo_ano1_brl'):
+                        custo_text.append(f"Custo Ano 1: R$ {solution_data.get('custo_ano1_brl'):,.2f}")
+                    if custo_text:
+                        elements.append(Paragraph(f"<b>Custo:</b> {', '.join(custo_text)}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
                     
                     # Prazos
                     if solution_data.get('prazos_dias'):
@@ -578,8 +599,13 @@ def generate_report():
                             elements.append(Paragraph(f"<b>Qualidade Objetiva:</b> {', '.join(qualidade_text)}", styles['Normal']))
                             elements.append(Spacer(1, 6))
                     
-                    # Riscos
-                    if solution_data.get('riscos') and isinstance(solution_data.get('riscos'), list):
+                    # Riscos Chave (prioridade) ou Riscos (fallback)
+                    if solution_data.get('riscos_chave') and isinstance(solution_data.get('riscos_chave'), list):
+                        elements.append(Paragraph("<b>Riscos Chave:</b>", styles['Normal']))
+                        for risco in solution_data.get('riscos_chave', []):
+                            elements.append(Paragraph(f"⚠️ {risco}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    elif solution_data.get('riscos') and isinstance(solution_data.get('riscos'), list):
                         elements.append(Paragraph("<b>Riscos:</b>", styles['Normal']))
                         for risco in solution_data.get('riscos', []):
                             elements.append(Paragraph(f"⚠️ {risco}", styles['Normal']))
@@ -604,6 +630,65 @@ def generate_report():
                             elements.append(Paragraph(f"💡 {beneficio}", styles['Normal']))
                         elements.append(Spacer(1, 6))
                     
+                    # Processamento de Dados
+                    if solution_data.get('processamento_dados'):
+                        proc = solution_data.get('processamento_dados', {})
+                        proc_text = []
+                        if proc.get('onde'):
+                            proc_text.append(f"Onde: {proc.get('onde')}")
+                        if proc.get('contratos'):
+                            proc_text.append(f"Contratos: {', '.join(proc.get('contratos', []))}")
+                        if proc.get('dados_dormem'):
+                            proc_text.append(f"Dados em repouso: {proc.get('dados_dormem')}")
+                        if proc_text:
+                            elements.append(Paragraph(f"<b>Processamento de Dados:</b> {' | '.join(proc_text)}", styles['Normal']))
+                            elements.append(Spacer(1, 6))
+                    
+                    # Viabilidade Preliminar
+                    if solution_data.get('viabilidade_preliminar'):
+                        viab = solution_data.get('viabilidade_preliminar', {})
+                        viab_text = []
+                        if viab.get('tecnica'):
+                            viab_text.append(f"Técnica: {viab.get('tecnica')}")
+                        if viab.get('economica'):
+                            viab_text.append(f"Econômica: {viab.get('economica')}")
+                        if viab.get('organizacional'):
+                            viab_text.append(f"Organizacional: {viab.get('organizacional')}")
+                        if viab_text:
+                            elements.append(Paragraph(f"<b>Viabilidade Preliminar:</b> {' | '.join(viab_text)}", styles['Normal']))
+                            elements.append(Spacer(1, 6))
+                    
+                    # Dependências
+                    if solution_data.get('dependencias') and isinstance(solution_data.get('dependencias'), list):
+                        elements.append(Paragraph("<b>Dependências:</b>", styles['Normal']))
+                        for dep in solution_data.get('dependencias', []):
+                            elements.append(Paragraph(f"🔗 {dep}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
+                    # Saídas Esperadas
+                    if solution_data.get('saidas_esperadas') and isinstance(solution_data.get('saidas_esperadas'), list):
+                        elements.append(Paragraph("<b>Saídas Esperadas:</b>", styles['Normal']))
+                        for saida in solution_data.get('saidas_esperadas', []):
+                            elements.append(Paragraph(f"📤 {saida}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
+                    # Maturidade
+                    if solution_data.get('maturidade'):
+                        elements.append(Paragraph(f"<b>Maturidade:</b> {solution_data.get('maturidade')}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
+                    # Prazo Estimado de Liberação
+                    if solution_data.get('prazo_estimado_liberacao_dias'):
+                        elements.append(Paragraph(f"<b>Prazo Estimado de Liberação:</b> {solution_data.get('prazo_estimado_liberacao_dias')} dias", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
+                    # Indicadores
+                    if solution_data.get('indicadores') and isinstance(solution_data.get('indicadores'), list):
+                        elements.append(Paragraph("<b>Indicadores:</b>", styles['Normal']))
+                        for ind in solution_data.get('indicadores', []):
+                            elements.append(Paragraph(f"📈 {ind}", styles['Normal']))
+                        elements.append(Spacer(1, 6))
+                    
                     # Nota e Margem de Erro
                     elements.append(Paragraph(
                         f"<b>Nota:</b> {solution_item.get('nota', 'N/A')} | <b>Margem de Erro:</b> {solution_item.get('margemErro', 'N/A')}",
@@ -612,7 +697,7 @@ def generate_report():
                     
                     elements.append(Spacer(1, 20))
         
-        # Build PDF
+        # Build PDF - a classe NumberedCanvas gerencia numeração e rodapé automaticamente
         doc.build(elements)
         buffer.seek(0)
         pdf_data = buffer.getvalue()

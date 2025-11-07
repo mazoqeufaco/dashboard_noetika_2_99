@@ -34,25 +34,76 @@ console.log('🐍 Iniciando backend Python...');
 // No Railway/Docker sempre usa python3
 const pythonCmd = 'python3';
 console.log(`   Usando comando: ${pythonCmd}`);
+console.log(`   Diretório: ${projectDir}`);
+console.log(`   Backend path: ${path.join(projectDir, 'backend.py')}`);
+
+// Verifica se backend.py existe
+const backendPath = path.join(projectDir, 'backend.py');
+if (!fs.existsSync(backendPath)) {
+  console.error(`❌ ERRO: backend.py não encontrado em ${backendPath}`);
+  process.exit(1);
+}
+
+console.log('✅ backend.py encontrado, iniciando...');
+
+// Verifica se python3 está disponível
+const { execSync } = require('child_process');
+try {
+  const pythonVersion = execSync(`${pythonCmd} --version`, { encoding: 'utf-8', timeout: 5000 });
+  console.log(`✅ ${pythonCmd} encontrado: ${pythonVersion.trim()}`);
+} catch (err) {
+  console.error(`❌ ${pythonCmd} não encontrado ou não acessível:`, err.message);
+  process.exit(1);
+}
+
+console.log('📋 Variáveis de ambiente Python:');
+console.log(`   FLASK_ENV: ${process.env.FLASK_ENV || 'não definido'}`);
+console.log(`   ENVIRONMENT: ${process.env.ENVIRONMENT || 'não definido'}`);
+console.log(`   BACKEND_PORT: ${process.env.BACKEND_PORT || 'não definido'}`);
+console.log(`   PORT: ${process.env.PORT || 'não definido'}`);
+
 const pythonBackend = spawn(pythonCmd, ['backend.py'], {
   cwd: projectDir,
   env: { ...process.env },
   stdio: ['ignore', 'pipe', 'pipe']
 });
 
+// Captura TODOS os logs do Python (stdout e stderr)
 pythonBackend.stdout.on('data', (data) => {
-  console.log(`[Python] ${data.toString().trim()}`);
+  const output = data.toString().trim();
+  if (output) {
+    console.log(`[Python] ${output}`);
+  }
 });
 
 pythonBackend.stderr.on('data', (data) => {
   const output = data.toString().trim();
-  // Ignora avisos do Flask em produção (já usamos Waitress)
-  if (!output.includes('WARNING: This is a development server')) {
+  if (output) {
+    // Mostra TODOS os erros do Python para debug
     console.error(`[Python ERR] ${output}`);
   }
 });
 
+// Log quando o processo Python inicia
+pythonBackend.on('spawn', () => {
+  console.log('✅ Processo Python spawnado com sucesso (PID:', pythonBackend.pid, ')');
+  console.log('⏳ Aguardando saída do backend Python...');
+});
+
+// Log imediatamente após criar o processo (pode ser antes do spawn)
+setTimeout(() => {
+  if (pythonBackend.pid) {
+    console.log('✅ Processo Python criado (PID:', pythonBackend.pid, ')');
+  } else {
+    console.log('⚠️  Processo Python ainda não tem PID (pode estar iniciando...)');
+  }
+}, 100);
+
 pythonBackend.on('error', (err) => {
+  console.error('❌ ERRO ao spawnar processo Python:', err);
+  console.error('   Código:', err.code);
+  console.error('   Mensagem:', err.message);
+  console.error('   Stack:', err.stack);
   if (err.code === 'ENOENT') {
     // Tenta python3 se python não funcionar (apenas Linux/Mac)
     if (pythonCmd === 'python' && process.platform !== 'win32') {
@@ -142,50 +193,108 @@ pythonBackend.on('error', (err) => {
   }
 });
 
-pythonBackend.on('exit', (code) => {
+pythonBackend.on('exit', (code, signal) => {
+  console.error(`❌ Backend Python encerrou!`);
+  console.error(`   Código de saída: ${code}`);
+  console.error(`   Sinal: ${signal || 'nenhum'}`);
   if (code !== 0 && code !== null) {
-    console.error(`❌ Backend Python encerrou com código ${code}`);
+    console.error(`❌ Backend Python falhou com código ${code}`);
+    console.error('💡 Verifique os logs do Python acima para mais detalhes');
     process.exit(1);
+  } else if (code === 0) {
+    console.log('⚠️  Backend Python encerrou normalmente (código 0) - isso não deveria acontecer em produção');
   }
 });
 
-// Aguarda alguns segundos para o Python iniciar
-setTimeout(() => {
-  console.log('\n📦 Iniciando servidor Node.js...\n');
-  
-  // Inicia servidor Node.js
-  const nodeServer = spawn('node', ['server.js'], {
-    cwd: projectDir,
-    env: { ...process.env },
-    stdio: 'inherit'
+// Função para verificar se o backend Python está pronto
+function waitForBackend(maxAttempts = 30, delay = 1000) {
+  return new Promise((resolve, reject) => {
+    const http = require('http');
+    let attempts = 0;
+    
+    const checkBackend = () => {
+      attempts++;
+      const req = http.get(`http://127.0.0.1:5000/api/health`, { timeout: 500 }, (res) => {
+        if (res.statusCode === 200 || res.statusCode === 404) {
+          console.log('✅ Backend Python está pronto!');
+          resolve();
+        } else {
+          if (attempts < maxAttempts) {
+            setTimeout(checkBackend, delay);
+          } else {
+            reject(new Error('Backend Python não respondeu a tempo'));
+          }
+        }
+      });
+      
+      req.on('error', () => {
+        if (attempts < maxAttempts) {
+          console.log(`⏳ Aguardando backend Python... (tentativa ${attempts}/${maxAttempts})`);
+          setTimeout(checkBackend, delay);
+        } else {
+          reject(new Error('Backend Python não está disponível'));
+        }
+      });
+      
+      req.on('timeout', () => {
+        req.destroy();
+        if (attempts < maxAttempts) {
+          setTimeout(checkBackend, delay);
+        } else {
+          reject(new Error('Timeout aguardando backend Python'));
+        }
+      });
+    };
+    
+    // Aguarda 2 segundos antes da primeira tentativa
+    setTimeout(checkBackend, 2000);
   });
+}
 
-  nodeServer.on('error', (err) => {
-    console.error('❌ Erro ao iniciar servidor Node.js:', err.message);
+// Aguarda o backend Python estar pronto antes de iniciar Node.js
+waitForBackend()
+  .then(() => {
+    console.log('\n📦 Iniciando servidor Node.js...\n');
+    
+    // Inicia servidor Node.js
+    const nodeServer = spawn('node', ['server.js'], {
+      cwd: projectDir,
+      env: { ...process.env },
+      stdio: 'inherit'
+    });
+
+    nodeServer.on('error', (err) => {
+      console.error('❌ Erro ao iniciar servidor Node.js:', err.message);
+      pythonBackend.kill();
+      process.exit(1);
+    });
+
+    nodeServer.on('exit', (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`❌ Servidor Node.js encerrou com código ${code}`);
+      }
+      pythonBackend.kill();
+      process.exit(code || 0);
+    });
+
+    // Trata encerramento gracioso
+    process.on('SIGTERM', () => {
+      console.log('\n🛑 Recebido SIGTERM, encerrando serviços...');
+      nodeServer.kill();
+      pythonBackend.kill();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', () => {
+      console.log('\n🛑 Recebido SIGINT, encerrando serviços...');
+      nodeServer.kill();
+      pythonBackend.kill();
+      process.exit(0);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Erro ao aguardar backend Python:', err.message);
+    console.error('💡 Verifique os logs do backend Python acima');
     pythonBackend.kill();
     process.exit(1);
   });
-
-  nodeServer.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`❌ Servidor Node.js encerrou com código ${code}`);
-    }
-    pythonBackend.kill();
-    process.exit(code || 0);
-  });
-
-  // Trata encerramento gracioso
-  process.on('SIGTERM', () => {
-    console.log('\n🛑 Recebido SIGTERM, encerrando serviços...');
-    nodeServer.kill();
-    pythonBackend.kill();
-    process.exit(0);
-  });
-
-  process.on('SIGINT', () => {
-    console.log('\n🛑 Recebido SIGINT, encerrando serviços...');
-    nodeServer.kill();
-    pythonBackend.kill();
-    process.exit(0);
-  });
-}, 3000); // Aguarda 3 segundos para Python iniciar
