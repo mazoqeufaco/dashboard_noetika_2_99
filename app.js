@@ -3,7 +3,7 @@ import { initEntrada } from './entrada.js';
 const IMG_SRC = 'public/triangulo2.png';
 const CSV_ZSCORES = 'data/Matriz de Decisão - Zscores dash covs(1).csv';
 const CSV_NOMES   = 'data/Matriz de Decisão - só nomes e coordenadas.csv';
-const SOLUTION_DESC = 'solution_description5.json';
+const SOLUTION_DESC = 'solution_description.json';
 
 // -------- CSV util --------
 function parseCSV(text){
@@ -42,11 +42,11 @@ let solutionDescriptions = null;
 async function loadSolutionDescriptions(){
   try {
     const response = await fetch(SOLUTION_DESC, {cache:'no-store'});
-    if(!response.ok) throw new Error('Não foi possível carregar solution_description5.json');
+    if(!response.ok) throw new Error('Não foi possível carregar solution_description.json');
     solutionDescriptions = await response.json();
     return solutionDescriptions;
   } catch(err) {
-    console.warn('Erro ao carregar solution_description5.json:', err);
+    console.warn('Erro ao carregar solution_description.json:', err);
     return null;
   }
 }
@@ -373,7 +373,7 @@ function renderPodiumClusters(items, decimals){
       const label = `${it.nome} (${it.coordStr || ''})`;
       const coord = it.coordStr || '';
       const href  = `detalhe.html?sol=${encodeURIComponent(it.nome)}&coord=${encodeURIComponent(coord)}`;
-      return `<a class="podium-link" href="${href}">${label}</a>`;
+      return `<a class="podium-link" href="${href}" target="_blank" rel="noopener">${label}</a>`;
     }).join('');
     const best = group.items[0];
     const scoreLine = best ? `<div class="podium-score">melhor nota: ${best.nota.toFixed(decimals)} • margem de erro: ${best.margemErro.toFixed(decimals)}</div>` : '';
@@ -406,7 +406,7 @@ function renderTable(items, decimals, priorities){
     return `<tr>
       <td>${i+1}</td>
       <td><span class="cluster-badge cluster-${r.cluster}">${clusterName}</span></td>
-      <td><a href="${href}">${r.nome} ${r.coordStr?`(${r.coordStr})`:''}</a></td>
+      <td><a href="${href}" target="_blank" rel="noopener">${r.nome} ${r.coordStr?`(${r.coordStr})`:''}</a></td>
       <td class="num">${r.nota.toFixed(decimals)}</td>
       <td class="num">${r.margemErro.toFixed(decimals)}</td>
     </tr>`;
@@ -896,11 +896,7 @@ function renderTree(itemMap, decimals){
       })
       .on('click', function(d){
         if(d.isLeaf && d.coordStr){
-          if(d3.event) {
-            d3.event.preventDefault();
-            d3.event.stopPropagation();
-          }
-          console.log('🌳 Árvore: clicou em', d.name, d.coordStr);
+          d3.event.stopPropagation();
           showSolutionModal(d.name, d.coordStr);
         }
       });
@@ -1038,17 +1034,6 @@ function findSolutionById(coordStr){
     );
   }
   
-  // Se tem formato "II.2.b" mas não existe, tenta "II.2.a" (variante mais próxima)
-  if(/^([IVXLCDM]+)\.(\d+)\.([b-z])$/i.test(normalizedCoord)){
-    const match = normalizedCoord.match(/^([IVXLCDM]+)\.(\d+)\.([b-z])$/i);
-    if(match){
-      // Tenta a variante anterior (ex: II.2.b → II.2.a)
-      const prevLetter = String.fromCharCode(match[3].charCodeAt(0) - 1);
-      variations.push(`${match[1]}.${match[2]}.${prevLetter}`);
-      variations.push(`${match[1]}.${match[2]}.a`); // Sempre tenta .a como fallback
-    }
-  }
-  
   // Também tenta sem o último número se tiver mais de um ponto
   // "II.2.1" → tenta "II.2.a" também
   if(/^([IVXLCDM]+)\.(\d+)\.\d+$/i.test(normalizedCoord)){
@@ -1105,32 +1090,8 @@ function findSolutionById(coordStr){
 
 // Função legada para compatibilidade (mantida caso algum link ainda use nome)
 function findSolutionByName(nome){
-  if(!solutionDescriptions || !solutionDescriptions.itens || !nome) return null;
-  
-  const normalizedNome = nome.trim();
-  
-  // 1. Busca exata por nome_curto (prioridade) ou nome (fallback)
-  let solution = solutionDescriptions.itens.find(item => 
-    (item.nome_curto && item.nome_curto === normalizedNome) || 
-    (item.nome && item.nome === normalizedNome)
-  );
-  if(solution) return solution;
-  
-  // 2. Busca case-insensitive
-  solution = solutionDescriptions.itens.find(item => 
-    (item.nome_curto && item.nome_curto.toLowerCase() === normalizedNome.toLowerCase()) || 
-    (item.nome && item.nome.toLowerCase() === normalizedNome.toLowerCase())
-  );
-  if(solution) return solution;
-  
-  // 3. Busca parcial (contém)
-  solution = solutionDescriptions.itens.find(item => 
-    (item.nome_curto && item.nome_curto.toLowerCase().includes(normalizedNome.toLowerCase())) || 
-    (item.nome && item.nome.toLowerCase().includes(normalizedNome.toLowerCase()))
-  );
-  if(solution) return solution;
-  
-  return null;
+  if(!solutionDescriptions || !solutionDescriptions.itens) return null;
+  return solutionDescriptions.itens.find(item => item.nome === nome) || null;
 }
 
 function formatCurrency(value){
@@ -1146,7 +1107,7 @@ function showSolutionModal(solutionName, coordStr){
   if(coordStr){
     solution = findSolutionById(coordStr);
     if(solution){
-      console.log(`✅ Solução encontrada por ID: "${solution.id}" - "${solution.nome_curto || solution.nome || 'N/A'}"`);
+      console.log(`✅ Solução encontrada por ID: "${solution.id}" - "${solution.nome}"`);
     }
   }
   
@@ -1154,25 +1115,7 @@ function showSolutionModal(solutionName, coordStr){
   if(!solution){
     solution = findSolutionByName(solutionName);
     if(solution){
-      console.log(`✅ Solução encontrada por nome: "${solution.nome_curto || solution.nome || 'N/A'}"`);
-    }
-  }
-  
-  // Se ainda não encontrou e tem coordenada, tenta encontrar variante mais próxima
-  if(!solution && coordStr){
-    // Tenta encontrar variante da mesma linha (ex: II.2.b → II.2.a)
-    const coordMatch = coordStr.match(/^([IVXLCDM]+)\.(\d+)(?:\.([a-z]))?$/i);
-    if(coordMatch){
-      const [, linha, num, letra] = coordMatch;
-      // Tenta .a, .b, .c da mesma linha.num
-      for(const variant of ['a', 'b', 'c', 'd']){
-        const variantId = `${linha}.${num}.${variant}`;
-        solution = solutionDescriptions.itens.find(item => item.id === variantId);
-        if(solution){
-          console.log(`✅ Solução encontrada por variante próxima: "${solution.id}" - "${solution.nome_curto || solution.nome || 'N/A'}"`);
-          break;
-        }
-      }
+      console.log(`✅ Solução encontrada por nome: "${solution.nome}"`);
     }
   }
   
@@ -1180,7 +1123,7 @@ function showSolutionModal(solutionName, coordStr){
     console.warn(`❌ Solução não encontrada`);
     console.log('   Nome:', solutionName);
     console.log('   Coordenada:', coordStr);
-    console.log('💡 Soluções disponíveis:', solutionDescriptions?.itens?.map(i => `${i.id}: ${i.nome_curto || i.nome || 'N/A'}`) || []);
+    console.log('💡 Soluções disponíveis:', solutionDescriptions?.itens?.map(i => `${i.id}: ${i.nome}`) || []);
     alert(`Informações sobre "${solutionName}" (${coordStr || 'sem coordenada'}) não encontradas.\n\nVerifique o console (F12) para ver soluções disponíveis.`);
     return;
   }
@@ -1188,272 +1131,147 @@ function showSolutionModal(solutionName, coordStr){
   const modal = document.getElementById('solutionModal');
   const content = document.getElementById('solutionModalContent');
   
-  // Obtém mapeamento de sinais e políticas UI
-  const mapeamento = solutionDescriptions?.mapeamento_sinais?.[solution.id] || {};
-  const uiPoliticas = solutionDescriptions?.ui_politicas || {};
-  const ocultarCustos = uiPoliticas.modo_cliente_oculta_custos === true;
-  const sigmaPct = solutionDescriptions?.premissas_gerais?.sigma_prazo_pct || {};
-  const linhaTronco = solution.linha || solution.tronco || '';
-  // Busca sigma do tronco (formato: tronco_I, tronco_II, tronco_III)
-  const sigmaKey = linhaTronco ? `tronco_${linhaTronco}` : '';
-  const sigmaValue = sigmaPct[sigmaKey] || 0;
-  const sigmaTronco = (sigmaValue * 100).toFixed(0);
-  
-  // Determina textos dos selos
-  const capturaEmoji = mapeamento.captura || solution.sinal_dados || '';
-  const processamentoEmoji = mapeamento.processamento || solution.sinal_dados || '';
-  const capturaTexto = capturaEmoji === '🔵' ? 'Externa 24/7' : capturaEmoji === '🟢' ? 'Interna (limitada)' : '';
-  const processamentoTexto = processamentoEmoji === '🔵' ? 'Fornecedor' : processamentoEmoji === '🟢' ? 'SEG (DMZ/on-prem)' : '';
-  
-  // Monta o HTML do modal seguindo o layout sugerido
+  // Monta o HTML do modal
   const html = `
-    <!-- Header -->
     <div class="solution-header">
-      <h2>${solution.nome_curto || solution.nome || 'Solução'}</h2>
-      <div class="solution-id">${solution.id} • Linha ${linhaTronco}</div>
+      <h2>${solution.nome}</h2>
+      <div class="solution-id">${solution.id} • Tronco ${solution.tronco}</div>
     </div>
 
-    <!-- Selos Duplos: Captura e Processamento -->
-    <div class="solution-badges-double">
-      <div class="badge-item">
-        <span class="badge-label">Captura:</span>
-        <span class="badge-value">${capturaEmoji} ${capturaTexto}</span>
-      </div>
-      <div class="badge-item">
-        <span class="badge-label">Processamento:</span>
-        <span class="badge-value">${processamentoEmoji} ${processamentoTexto}</span>
-      </div>
-    </div>
-
-    <!-- Governança Resumida (cards pequenos) -->
-    ${solution.processamento_dados ? `
-    <div class="governance-cards">
-      <div class="gov-card-small">
-        <strong>Processamento:</strong> ${solution.processamento_dados.onde || ''}
-      </div>
-      ${solution.processamento_dados.contratos && solution.processamento_dados.contratos.length > 0 ? `
-      <div class="gov-card-small">
-        <strong>Contratos:</strong> ${solution.processamento_dados.contratos.map(c => {
-          if(c === 'NDA') return '📄 NDA';
-          if(c === 'DPA') return '🔒 DPA';
-          if(c === 'SLA') return '⚡ SLA';
-          return c;
-        }).join(', ')}
-      </div>
-      ` : ''}
-      ${solution.processamento_dados.dados_dormem ? `
-      <div class="gov-card-small">
-        <strong>Dados em repouso:</strong> ${solution.processamento_dados.dados_dormem}
-      </div>
-      ` : ''}
-    </div>
-    ` : ''}
-
-    <!-- Descrição Simplificada -->
-    ${solution.descricao_para_leigos ? `
-    <div class="solution-section solution-highlight">
-      <h3>📋 Descrição</h3>
-      <p>${solution.descricao_para_leigos}</p>
-    </div>
-    ` : ''}
-
-    <!-- Escopo (2 colunas) + Saídas Esperadas -->
     <div class="solution-section">
-      ${solution.escopo && solution.escopo.length > 0 ? `
+      <h3>📋 Descrição</h3>
+      <p>${solution.descricao}</p>
+    </div>
+
+    <div class="solution-section">
       <h3>🎯 Escopo</h3>
-      <div class="escopo-two-columns">
-        ${solution.escopo.map(item => `<div class="escopo-item">• ${item}</div>`).join('')}
+      <ul class="solution-list">
+        ${solution.escopo.map(item => `<li>${item}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="solution-section">
+      <h3>🛡️ Governança</h3>
+      <div class="governance-badges">
+        ${solution.governanca_legenda.map(emoji => `<span class="gov-badge">${emoji}</span>`).join('')}
+      </div>
+      <p class="solution-text">${solution.governanca_explica}</p>
+      ${solution.comentarios ? `<p class="solution-comment">💬 ${solution.comentarios}</p>` : ''}
+    </div>
+
+    <div class="solution-grid">
+      <div class="solution-card">
+        <h3>💰 Custos</h3>
+        ${solution.preco_cliente ? `
+        <div class="cost-item">
+          <strong>CAPEX:</strong> ${formatCurrency(solution.preco_cliente.capex_brl)}
+        </div>
+        <div class="cost-item">
+          <strong>OPEX Mensal:</strong> ${formatCurrency(solution.preco_cliente.opex_mensal_brl)}
+        </div>
+        ` : `
+        <div class="cost-item">
+          <strong>CAPEX:</strong> ${formatCurrency(solution.capex_brl)}
+        </div>
+        <div class="cost-item">
+          <strong>OPEX Mensal:</strong> ${formatCurrency(solution.opex_mensal_brl)}
+        </div>
+        `}
+      </div>
+
+      <div class="solution-card">
+        <h3>⏱️ Prazos</h3>
+        <div class="time-item">
+          <strong>Implantação:</strong> ${solution.prazos_dias.implantacao} dias
+        </div>
+        <div class="time-item">
+          <strong>Testes UAT:</strong> ${solution.prazos_dias.testes_UAT} dias
+        </div>
+        <div class="time-item">
+          <strong>Total:</strong> ${solution.prazos_dias.total} dias
+        </div>
+        <div class="time-item">
+          <strong>σ (Incerteza):</strong> ${solution.prazos_dias.sigma} dias
+        </div>
+      </div>
+    </div>
+
+    ${solution.qualidade_objetiva ? `
+    <div class="solution-section">
+      <h3>✨ Qualidade Objetiva</h3>
+      <div class="quality-grid">
+        ${solution.qualidade_objetiva.deduplicacao_top3_pct ? `
+        <div class="quality-item">
+          <strong>Deduplicação Top 3:</strong> ${solution.qualidade_objetiva.deduplicacao_top3_pct}
+        </div>
+        ` : ''}
+        ${solution.qualidade_objetiva.latencia_seg ? `
+        <div class="quality-item">
+          <strong>Latência:</strong> ${solution.qualidade_objetiva.latencia_seg} seg
+        </div>
+        ` : ''}
+        ${solution.qualidade_objetiva.cobertura_classificacao_pct ? `
+        <div class="quality-item">
+          <strong>Cobertura de Classificação:</strong> ${solution.qualidade_objetiva.cobertura_classificacao_pct}
+        </div>
+        ` : ''}
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="solution-grid">
+      ${solution.riscos && solution.riscos.length > 0 ? `
+      <div class="solution-card solution-warning">
+        <h3>⚠️ Riscos</h3>
+        <ul class="solution-list">
+          ${solution.riscos.map(risco => `<li>${risco}</li>`).join('')}
+        </ul>
       </div>
       ` : ''}
-      ${solution.saidas_esperadas && solution.saidas_esperadas.length > 0 ? `
-      <div style="margin-top: 12px;">
-        <strong>📤 Saídas Esperadas:</strong>
-        <ul class="solution-list" style="margin-top: 6px;">
-          ${solution.saidas_esperadas.slice(0, 3).map(saida => `<li>${saida}</li>`).join('')}
+
+      ${solution.mitigacoes && solution.mitigacoes.length > 0 ? `
+      <div class="solution-card solution-success">
+        <h3>✅ Mitigações</h3>
+        <ul class="solution-list">
+          ${solution.mitigacoes.map(mit => `<li>${mit}</li>`).join('')}
         </ul>
       </div>
       ` : ''}
     </div>
 
-    <!-- Preço (somente cliente) -->
-    <div class="solution-section">
-      <h3>💰 Preço</h3>
-      ${solution.preco_cliente ? `
-      <div class="prazos-grid">
-        ${solution.preco_cliente.capex_brl ? `
-        <div class="prazo-item">
-          <strong>Implantação (CAPEX):</strong> ${formatCurrency(solution.preco_cliente.capex_brl)}
-        </div>
-        ` : ''}
-        ${solution.preco_cliente.opex_mensal_brl ? `
-        <div class="prazo-item">
-          <strong>Manutenção Mensal (OPEX):</strong> ${formatCurrency(solution.preco_cliente.opex_mensal_brl)}
-        </div>
-        ` : ''}
-        ${solution.preco_cliente.preco_cliente_ano1_brl ? `
-        <div class="prazo-item prazo-total">
-          <strong>Total (Ano 1):</strong> <span class="highlight">${formatCurrency(solution.preco_cliente.preco_cliente_ano1_brl)}</span>
-        </div>
-        ` : ''}
-      </div>
-      ` : ''}
-      ${!ocultarCustos && solution.custo_ano1_brl ? `
-      <div style="margin-top: 12px; opacity: 0.7; font-size: 0.9em; color: var(--muted);">
-        <span>Custo interno: ${formatCurrency(solution.custo_ano1_brl)}</span>
-      </div>
-      ` : ''}
-    </div>
-
-    <!-- Prazos -->
-    ${solution.prazos_dias ? `
-    <div class="solution-section">
-      <h3>⏱️ Prazos</h3>
-      <div class="prazos-grid">
-        ${solution.prazos_dias.implantacao !== undefined ? `
-        <div class="prazo-item">
-          <strong>Implantação:</strong> ${solution.prazos_dias.implantacao} dias
-        </div>
-        ` : ''}
-        ${solution.prazos_dias.testes_UAT !== undefined ? `
-        <div class="prazo-item">
-          <strong>Testes UAT:</strong> ${solution.prazos_dias.testes_UAT} dias
-        </div>
-        ` : ''}
-        ${solution.prazos_dias.total !== undefined ? `
-        <div class="prazo-item prazo-total">
-          <strong>Total:</strong> <span class="highlight">${solution.prazos_dias.total} dias</span>
-        </div>
-        ` : ''}
-        ${solution.prazos_dias.sigma !== undefined && uiPoliticas.mostra_sigma !== false ? `
-        <div class="prazo-item" title="σ do tronco ${linhaTronco}: ${sigmaTronco}%">
-          <strong>σ (Incerteza):</strong> ${solution.prazos_dias.sigma} dias
-          <span class="sigma-tooltip" title="Incerteza do tronco ${linhaTronco}: ${sigmaTronco}%">ℹ️</span>
-        </div>
-        ` : ''}
-      </div>
-    </div>
-    ` : solution.prazo_estimado_liberacao_dias ? `
-    <div class="solution-section">
-      <h3>⏱️ Prazo Estimado</h3>
-      <p>${solution.prazo_estimado_liberacao_dias} dias</p>
+    ${solution.quando_escolher ? `
+    <div class="solution-section solution-highlight">
+      <h3>🎯 Quando Escolher</h3>
+      <p>${solution.quando_escolher}</p>
     </div>
     ` : ''}
 
-    <!-- Layout com Indicadores e Riscos Chave na lateral -->
-    <div class="solution-layout-main-sidebar">
-      <div class="solution-main-content">
-        ${solution.retorno_estimado ? `
-        <div class="solution-section">
-          <h3>💡 Retorno Estimado</h3>
-          <p>${solution.retorno_estimado}</p>
-        </div>
-        ` : ''}
-
-        ${solution.viabilidade_preliminar ? `
-        <div class="solution-section">
-          <h3>📊 Viabilidade Preliminar</h3>
-          <div class="viability-grid">
-            ${solution.viabilidade_preliminar.tecnica ? `
-            <div class="viability-item">
-              <strong>Técnica:</strong> ${solution.viabilidade_preliminar.tecnica}
-            </div>
-            ` : ''}
-            ${solution.viabilidade_preliminar.economica ? `
-            <div class="viability-item">
-              <strong>Econômica:</strong> ${solution.viabilidade_preliminar.economica}
-            </div>
-            ` : ''}
-            ${solution.viabilidade_preliminar.organizacional ? `
-            <div class="viability-item">
-              <strong>Organizacional:</strong> ${solution.viabilidade_preliminar.organizacional}
-            </div>
-            ` : ''}
-          </div>
-        </div>
-        ` : ''}
-
-        ${solution.dependencias && solution.dependencias.length > 0 ? `
-        <div class="solution-section">
-          <h3>🔗 Dependências</h3>
-          <ul class="solution-list">
-            ${solution.dependencias.map(dep => `<li>${dep}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-
-        ${solution.maturidade ? `
-        <div class="solution-section">
-          <h3>🏗️ Maturidade</h3>
-          <p>${solution.maturidade}</p>
-        </div>
-        ` : ''}
+    <div class="solution-grid">
+      ${solution.beneficios && solution.beneficios.length > 0 ? `
+      <div class="solution-card solution-benefit">
+        <h3>💡 Benefícios</h3>
+        <ul class="solution-list">
+          ${solution.beneficios.map(ben => `<li>${ben}</li>`).join('')}
+        </ul>
       </div>
+      ` : ''}
 
-      <div class="solution-sidebar">
-        ${solution.indicadores && solution.indicadores.length > 0 ? `
-        <div class="solution-card-compact">
-          <h4>📈 Indicadores</h4>
-          <ul class="solution-list-compact">
-            ${solution.indicadores.slice(0, 5).map(ind => `<li>${ind}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-
-        ${solution.riscos_chave && solution.riscos_chave.length > 0 ? `
-        <div class="solution-card-compact solution-warning">
-          <h4>⚠️ Riscos Chave</h4>
-          <ul class="solution-list-compact">
-            ${solution.riscos_chave.slice(0, 3).map(risco => `<li>${risco}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
+      ${solution.limitacoes && solution.limitacoes.length > 0 ? `
+      <div class="solution-card solution-limit">
+        <h3>⚠️ Limitações</h3>
+        <ul class="solution-list">
+          ${solution.limitacoes.map(lim => `<li>${lim}</li>`).join('')}
+        </ul>
       </div>
+      ` : ''}
     </div>
 
-    <!-- Glossário e Legenda (Accordions) -->
-    ${solutionDescriptions?.explicacoes_para_leigos || solutionDescriptions?.legendas || solutionDescriptions?.legenda_dupla_governanca ? `
-    <div class="accordion-section">
-      ${solutionDescriptions?.explicacoes_para_leigos && Object.keys(solutionDescriptions.explicacoes_para_leigos).length > 0 ? `
-      <details class="accordion-item">
-        <summary class="accordion-header">📚 Glossário</summary>
-        <div class="accordion-content">
-          ${Object.entries(solutionDescriptions.explicacoes_para_leigos).map(([key, value]) => `
-            <div class="glossary-item">
-              <strong>${key.replace(/_/g, ' ')}:</strong> ${value}
-            </div>
-          `).join('')}
-        </div>
-      </details>
-      ` : ''}
-
-      ${(solutionDescriptions?.definicoes?.legendas || solutionDescriptions?.legenda_dupla_governanca) ? `
-      <details class="accordion-item">
-        <summary class="accordion-header">🏷️ Legenda</summary>
-        <div class="accordion-content">
-          ${solutionDescriptions?.definicoes?.legendas ? `
-          <div style="margin-bottom: 12px;">
-            ${Object.entries(solutionDescriptions.definicoes.legendas).map(([emoji, texto]) => `
-              <div class="legend-item">
-                <span class="legend-emoji">${emoji}</span>
-                <span class="legend-text">${texto}</span>
-              </div>
-            `).join('')}
-          </div>
-          ` : ''}
-          ${solutionDescriptions?.legenda_dupla_governanca ? `
-          <div>
-            <strong>Governança:</strong>
-            <div class="legend-item">
-              <strong>Captura:</strong> ${solutionDescriptions.legenda_dupla_governanca.captura || ''}
-            </div>
-            <div class="legend-item">
-              <strong>Processamento:</strong> ${solutionDescriptions.legenda_dupla_governanca.processamento || ''}
-            </div>
-          </div>
-          ` : ''}
-        </div>
-      </details>
-      ` : ''}
+    ${solution.extensoes_futuras && solution.extensoes_futuras.length > 0 ? `
+    <div class="solution-section">
+      <h3>🚀 Extensões Futuras</h3>
+      <ul class="solution-list">
+        ${solution.extensoes_futuras.map(ext => `<li>${ext}</li>`).join('')}
+      </ul>
     </div>
     ` : ''}
   `;
@@ -1465,60 +1283,30 @@ function showSolutionModal(solutionName, coordStr){
   if (typeof trackEvent === 'function') {
     trackEvent('solution_viewed', {
       solution_id: solution.id,
-      solution_name: solution.nome || solution.nome_curto,
-      linha: solution.linha || solution.tronco
+      solution_name: solution.nome,
+      tronco: solution.tronco
     });
   }
 }
 
 function setupSolutionLinks(){
-  console.log('🔧 Configurando event listeners para links de solução...');
-  
   // Intercepta todos os cliques em links de solução
   document.addEventListener('click', (e) => {
-    // Verifica se é um link
     const link = e.target.closest('a');
-    if(!link) return;
-    
-    const href = link.getAttribute('href');
-    if(!href) return;
-    
-    console.log('🔗 Link detectado:', href);
+    if(!link || !link.href) return;
     
     // Verifica se é um link de detalhe.html ou link de solução
-    if(href.includes('detalhe.html?sol=') || href.includes('?sol=')){
+    const href = link.getAttribute('href');
+    if(href && href.includes('detalhe.html?sol=')){
       e.preventDefault();
-      e.stopPropagation();
-      
-      // Extrai parâmetros da URL
-      let urlParams;
-      try {
-        if(href.includes('?')){
-          const queryString = href.split('?')[1].split('#')[0];
-          urlParams = new URLSearchParams(queryString);
-        } else {
-          console.warn('⚠️ Link sem query string:', href);
-          return;
-        }
-      } catch(err) {
-        console.error('❌ Erro ao parsear URL:', err, href);
-        return;
-      }
-      
+      const urlParams = new URLSearchParams(href.split('?')[1]);
       const solutionName = decodeURIComponent(urlParams.get('sol') || '');
       const coordStr = decodeURIComponent(urlParams.get('coord') || '');
-      
-      console.log('🔗 Link clicado:', { solutionName, coordStr, href });
-      
       if(solutionName || coordStr){
         showSolutionModal(solutionName, coordStr);
-      } else {
-        console.warn('⚠️ Link sem parâmetros válidos:', href);
       }
     }
-  }, true); // Usa capture phase para garantir que seja executado primeiro
-  
-  console.log('✅ Event listeners configurados');
+  });
 }
 
 // -------- Dados globais para relatório --------
@@ -1733,15 +1521,6 @@ async function generateReport() {
     
     setupSolutionLinks();
     console.log('✅ Links configurados');
-    
-    // Teste: verifica se há links na página após um delay
-    setTimeout(() => {
-      const links = document.querySelectorAll('a[href*="?sol="]');
-      console.log(`🔍 Links encontrados na página: ${links.length}`);
-      if(links.length > 0) {
-        console.log('📋 Primeiros links:', Array.from(links).slice(0, 3).map(l => l.href));
-      }
-    }, 2000);
 
     // Configura fechamento do modal
     const modal = document.getElementById('solutionModal');
@@ -1884,4 +1663,3 @@ async function generateReport() {
     console.error('Stack trace:', err.stack);
   }
 })();
-
