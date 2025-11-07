@@ -246,8 +246,9 @@ function waitForBackend(maxAttempts = 30, delay = 1000) {
       });
     };
     
-    // Aguarda 2 segundos antes da primeira tentativa
-    setTimeout(checkBackend, 2000);
+    // Aguarda 5 segundos antes da primeira tentativa (Python pode demorar para iniciar)
+    console.log('⏳ Aguardando 5 segundos antes de verificar backend Python...');
+    setTimeout(checkBackend, 5000);
   });
 }
 
