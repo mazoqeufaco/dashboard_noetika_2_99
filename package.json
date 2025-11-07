@@ -1,0 +1,20 @@
+{
+  "name": "dashboard-noetika",
+  "version": "1.0.0",
+  "description": "Tribússola - Dashboard de seleção de soluções",
+  "main": "index.html",
+  "scripts": {
+    "start": "node start.js",
+    "start:dev": "node server.js",
+    "start:simple": "node server-simple.js",
+    "start:py": "python -m http.server 8000",
+    "kill-port": "node kill-port.js 8000",
+    "build": "echo 'Build handled by Railway Nixpacks'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
