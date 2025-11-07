@@ -56,17 +56,43 @@ try {
   process.exit(1);
 }
 
+// Verifica se backend.py é executável e tem conteúdo
+try {
+  const stats = fs.statSync(backendPath);
+  console.log(`✅ backend.py existe (${stats.size} bytes)`);
+  
+  // Tenta verificar se o Python consegue importar o backend (teste rápido)
+  try {
+    const testResult = execSync(`${pythonCmd} -c "import sys; sys.path.insert(0, '${projectDir}'); import backend; print('✅ backend.py pode ser importado')"`, { 
+      encoding: 'utf-8', 
+      timeout: 5000,
+      cwd: projectDir 
+    });
+    console.log(testResult.trim());
+  } catch (testErr) {
+    console.warn('⚠️  Aviso: Não foi possível testar importação do backend.py:', testErr.message);
+    console.warn('   Isso pode ser normal se houver dependências faltando, mas o processo continuará.');
+  }
+} catch (err) {
+  console.error(`❌ Erro ao verificar backend.py:`, err.message);
+  process.exit(1);
+}
+
 console.log('📋 Variáveis de ambiente Python:');
 console.log(`   FLASK_ENV: ${process.env.FLASK_ENV || 'não definido'}`);
 console.log(`   ENVIRONMENT: ${process.env.ENVIRONMENT || 'não definido'}`);
 console.log(`   BACKEND_PORT: ${process.env.BACKEND_PORT || 'não definido'}`);
 console.log(`   PORT: ${process.env.PORT || 'não definido'}`);
+console.log(`   PWD: ${process.env.PWD || process.cwd()}`);
 
+console.log('🔧 Tentando spawnar processo Python...');
 const pythonBackend = spawn(pythonCmd, ['backend.py'], {
   cwd: projectDir,
   env: { ...process.env },
   stdio: ['ignore', 'pipe', 'pipe']
 });
+
+console.log('✅ spawn() chamado, aguardando evento spawn...');
 
 // Captura TODOS os logs do Python (stdout e stderr)
 pythonBackend.stdout.on('data', (data) => {
@@ -95,9 +121,20 @@ setTimeout(() => {
   if (pythonBackend.pid) {
     console.log('✅ Processo Python criado (PID:', pythonBackend.pid, ')');
   } else {
-    console.log('⚠️  Processo Python ainda não tem PID (pode estar iniciando...)');
+    console.error('❌ ERRO: Processo Python NÃO tem PID após 100ms!');
+    console.error('   Isso indica que o spawn falhou silenciosamente.');
+    console.error('   Verifique se python3 está instalado e acessível.');
   }
 }, 100);
+
+// Log adicional após 1 segundo
+setTimeout(() => {
+  if (pythonBackend.pid) {
+    console.log('✅ Processo Python ainda ativo após 1s (PID:', pythonBackend.pid, ')');
+  } else {
+    console.error('❌ ERRO CRÍTICO: Processo Python não tem PID após 1 segundo!');
+  }
+}, 1000);
 
 pythonBackend.on('error', (err) => {
   console.error('❌ ERRO ao spawnar processo Python:', err);
@@ -253,7 +290,38 @@ function waitForBackend(maxAttempts = 30, delay = 1000) {
 }
 
 // Aguarda o backend Python estar pronto antes de iniciar Node.js
-waitForBackend()
+// Primeiro, aguarda o processo Python ser spawnado
+const waitForSpawn = new Promise((resolve, reject) => {
+  let spawnResolved = false;
+  
+  pythonBackend.on('spawn', () => {
+    if (!spawnResolved) {
+      spawnResolved = true;
+      console.log('✅ Processo Python spawnado, aguardando backend estar pronto...');
+      resolve();
+    }
+  });
+  
+  // Timeout de segurança: se após 3 segundos não houve spawn, verifica se tem PID
+  setTimeout(() => {
+    if (!spawnResolved) {
+      if (pythonBackend.pid) {
+        console.log('⚠️  Processo Python tem PID mas evento spawn não foi disparado (PID:', pythonBackend.pid, ')');
+        spawnResolved = true;
+        resolve();
+      } else {
+        console.error('❌ ERRO: Processo Python não foi spawnado após 3 segundos!');
+        reject(new Error('Python não foi spawnado'));
+      }
+    }
+  }, 3000);
+});
+
+waitForSpawn
+  .then(() => {
+    console.log('⏳ Aguardando backend Python estar pronto (health check)...');
+    return waitForBackend();
+  })
   .then(() => {
     console.log('\n📦 Iniciando servidor Node.js...\n');
     
@@ -296,6 +364,8 @@ waitForBackend()
   .catch((err) => {
     console.error('❌ Erro ao aguardar backend Python:', err.message);
     console.error('💡 Verifique os logs do backend Python acima');
-    pythonBackend.kill();
+    if (pythonBackend.pid) {
+      pythonBackend.kill();
+    }
     process.exit(1);
   });
