@@ -1,0 +1,131 @@
+{
+  "version": "2025-11-02",
+  "locale": "pt-BR",
+  "product": "Dashboard de Triagem & Unicidade",
+  "i18nNamespace": "consultingConsent",
+  "banner_notice": {
+    "id": "bannerNotice",
+    "title": {"key": "banner.title", "text": "Aviso sobre natureza consultiva"},
+    "body": {
+      "key": "banner.body",
+      "text": "Este dashboard e o relatório associado têm natureza consultiva (diagnóstico e recomendações baseadas em dados fornecidos pela empresa). Este aviso é informativo e não constitui contratação. Caso a empresa tenha interesse, poderemos enviar uma proposta comercial para formalização."
+    },
+    "actions": [
+      {"id": "acknowledge", "key": "banner.ctaAcknowledge", "text": "Li e entendi"}
+    ],
+    "links": [
+      {"id": "privacy", "key": "banner.linkPrivacy", "text": "Política de privacidade", "href": "/privacidade"}
+    ],
+    "telemetry": {"eventOnAcknowledge": "CONSULTING_NOTICE_ACK"}
+  },
+  "download_modal": {
+    "id": "downloadModal",
+    "title": {"key": "modal.title", "text": "Termo de ciência e autorização de contato"},
+    "body": {
+      "lines": [
+        {"key": "modal.l1", "text": "Declaro estar ciente de que o material possui caráter consultivo."},
+        {"key": "modal.l2", "text": "Autorizo o envio de proposta comercial com escopo e valores para eventual contratação."},
+        {"key": "modal.l3", "text": "Este termo não configura contratação; a prestação de serviços dependerá de proposta formal e aceite."},
+        {"key": "modal.l4", "text": "Intenção de prosseguimento até 25/11/2025, após a entrega do relatório final desta pesquisa."}
+      ]
+    },
+    "fields": [
+      {"id": "company", "key": "modal.fieldCompany", "label": "Empresa", "type": "text", "required": true},
+      {"id": "name", "key": "modal.fieldName", "label": "Nome", "type": "text", "required": true},
+      {"id": "email", "key": "modal.fieldEmail", "label": "E-mail corporativo", "type": "email", "required": true},
+      {"id": "role", "key": "modal.fieldRole", "label": "Cargo", "type": "text", "required": true}
+    ],
+    "checkboxes": [
+      {"id": "authorizedRep", "key": "modal.chkAuthorized", "label": "Sou representante autorizado da empresa para tratativas comerciais.", "required": false},
+      {"id": "agree", "key": "modal.chkAgree", "label": "Li e concordo com o termo acima.", "required": true}
+    ],
+    "buttons": [
+      {"id": "confirmAndDownload", "key": "modal.btnConfirm", "text": "Concordo e baixar PDF", "variant": "primary"},
+      {"id": "downloadAcademic", "key": "modal.btnDownloadAcademic", "text": "Baixar sem compromisso (uso acadêmico)", "variant": "ghost"},
+      {"id": "cancel", "key": "modal.btnCancel", "text": "Cancelar", "variant": "secondary"}
+    ],
+    "validation": {
+      "email": {"key": "modal.valEmail", "text": "Informe um e-mail corporativo válido."},
+      "required": {"key": "modal.valRequired", "text": "Campo obrigatório."},
+      "agree": {"key": "modal.valAgree", "text": "É necessário aceitar o termo para continuar."}
+    },
+    "logging": {
+      "capture": ["timestamp", "ip", "pdfHash", "pdfVersion", "termVersion", "company", "email", "name", "role", "authorizedRep"],
+      "eventOnConfirm": "CONSULTING_CONSENT_ACCEPTED",
+      "eventOnAcademic": "CONSULTING_DOWNLOAD_ACADEMIC"
+    },
+    "termVersion": "v1.0-2025-11-02"
+  },
+  "post_download_callout": {
+    "id": "postDownloadCallout",
+    "message": {"key": "callout.msg", "text": "Deseja receber uma proposta formal com escopo, entregáveis e valores? Ela não implica contratação; você só decide após revisar e assinar."},
+    "buttons": [
+      {"id": "requestProposal", "key": "callout.btnRequest", "text": "Solicitar proposta por e-mail", "variant": "primary"},
+      {"id": "viewSummary", "key": "callout.btnSummary", "text": "Ver resumo de pacotes", "variant": "secondary"}
+    ],
+    "telemetry": {"eventShown": "POST_DOWNLOAD_CALLOUT_SHOWN", "eventRequest": "PROPOSAL_REQUESTED", "eventViewSummary": "PACKAGE_SUMMARY_VIEWED"}
+  },
+  "packages_summary": {
+    "id": "packagesSummary",
+    "title": {"key": "packages.title", "text": "Resumo de pacotes (não vinculante)"},
+    "packages": [
+      {
+        "id": "pkgA",
+        "name": {"key": "packages.a.name", "text": "Pacote A — Nota Técnica Executiva (10–15p)"},
+        "description": {"key": "packages.a.desc", "text": "Problema, 3–5 opções, quick-wins, riscos e estimativa de impacto operacional."},
+        "priceRange": {"key": "packages.a.price", "text": "R$ 9–12 mil"},
+        "cta": {"id": "ctaPkgA", "key": "packages.a.cta", "text": "Receber proposta formal para este pacote"}
+      },
+      {
+        "id": "pkgB",
+        "name": {"key": "packages.b.name", "text": "Pacote B — Recomendações + Priorização (25–35p)"},
+        "description": {"key": "packages.b.desc", "text": "Matriz ICE/RICE, roadmap 90 dias, KPIs, estimativa de payback."},
+        "priceRange": {"key": "packages.b.price", "text": "R$ 20–28 mil"},
+        "cta": {"id": "ctaPkgB", "key": "packages.b.cta", "text": "Receber proposta formal para este pacote"}
+      },
+      {
+        "id": "pkgC",
+        "name": {"key": "packages.c.name", "text": "Pacote C — Exec Session (2h) + B"},
+        "description": {"key": "packages.c.desc", "text": "Readout executivo, ajustes finais do backlog e definição de próximos passos."},
+        "priceRange": {"key": "packages.c.price", "text": "R$ 30–38 mil"},
+        "cta": {"id": "ctaPkgC", "key": "packages.c.cta", "text": "Receber proposta formal para este pacote"}
+      }
+    ],
+    "legal": {"key": "packages.legal", "text": "Valores indicativos; a contratação exige aceite da Proposta/SoW."}
+  },
+  "email_templates": {
+    "proposal_request": {
+      "subject": {"key": "email.proposal.subject", "text": "Proposta — Triagem/Unicidade de Ideias (validade até 25/11/2025)"},
+      "body": {
+        "key": "email.proposal.body",
+        "text": "Olá, {{nome}}. Confirmamos sua autorização de contato para envio de proposta comercial referente ao dashboard/relatório {{versao}} ({{data}}). Enviaremos a Proposta/SoW com escopo, entregáveis, valores e condições. Este e-mail não caracteriza contratação; a prestação inicia-se somente após o aceite da proposta. Atenciosamente, {{assinatura}}."
+      }
+    },
+    "consent_confirmation": {
+      "subject": {"key": "email.consent.subject", "text": "Confirmação de ciência — uso consultivo do material"},
+      "body": {
+        "key": "email.consent.body",
+        "text": "Olá, {{nome}}. Registramos sua ciência sobre a natureza consultiva do dashboard/relatório {{versao}} ({{data}}). Termo: {{termVersion}} | IP: {{ip}} | Hash do PDF: {{pdfHash}}. Caso deseje, podemos encaminhar proposta comercial para formalização."
+      }
+    }
+  },
+  "legal_texts": {
+    "non_binding": {"key": "legal.nonBinding", "text": "Este aviso é informativo e não constitui contratação."},
+    "contracting_clause": {"key": "legal.contracting", "text": "A prestação de serviços dependerá de proposta formal e aceite."},
+    "validity_note": {"key": "legal.validity", "text": "Intenção de prosseguimento até 25/11/2025."},
+    "ip_note": {"key": "legal.ip", "text": "Propriedade intelectual metodológica permanece do autor; o uso do relatório não transfere licença de modelos/ferramentas."}
+  },
+  "tracking_schema": {
+    "CONSULTING_NOTICE_ACK": {"payload": ["userId", "timestamp"]},
+    "CONSULTING_CONSENT_ACCEPTED": {"payload": ["userId", "timestamp", "ip", "pdfHash", "pdfVersion", "termVersion", "company", "email", "name", "role", "authorizedRep"]},
+    "CONSULTING_DOWNLOAD_ACADEMIC": {"payload": ["userId", "timestamp", "ip", "pdfHash", "pdfVersion", "termVersion"]},
+    "POST_DOWNLOAD_CALLOUT_SHOWN": {"payload": ["userId", "timestamp", "pdfVersion"]},
+    "PROPOSAL_REQUESTED": {"payload": ["userId", "timestamp", "packageId", "email"]},
+    "PACKAGE_SUMMARY_VIEWED": {"payload": ["userId", "timestamp"]}
+  },
+  "ui_labels": {
+    "close": {"key": "ui.close", "text": "Fechar"},
+    "back": {"key": "ui.back", "text": "Voltar"},
+    "continue": {"key": "ui.continue", "text": "Continuar"}
+  }
+}

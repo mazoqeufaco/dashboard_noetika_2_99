@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Clique sobre o triângulo para definir sua prioridade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Tribússola - um norte para sua solução</h1>
+  <div class="dashboard-subtitle">dashboard interativo</div>
+  <p>Clique sobre o triângulo para definir sua prioridade</p>
+
+  <div class="wrap">
+    <div class="tri-wrap">
+      <canvas id="tri"></canvas>
+      <!-- Rótulos externos -->
+      <div class="label label-top">Prazo</div>
+      <div class="label label-left">Custo</div>
+      <div class="label label-right">Qualidade</div>
+    </div>
+
+    <div class="controls">
+      <label>Custo
+        <input id="r" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#ff6b6b"></span>
+      </label>
+      <label>Qualidade
+        <input id="g" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#51cf66"></span>
+      </label>
+      <label>Prazo
+        <input id="b" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#4dabf7"></span>
+      </label>
+
+      <button id="confirm" class="primary">Confirma</button>
+    </div>
+
+    <!-- Pódio por Cluster -->
+    <div class="podium">
+      <h2>Pódio</h2>
+      <div id="podium" class="podium-row"></div>
+      <div class="podium-actions">
+        <button id="btnRanking" class="ghost">Ranking completo</button>
+      </div>
+    </div>
+
+    <!-- Ranking completo (inicia oculto) -->
+    <div class="result" id="rankingSection" style="display:none">
+      <h2>Ranking</h2>
+      <div id="table"></div>
+      <div id="clusterPlot"></div>
+      <div class="result-actions">
+        <button id="btnGenerateReport" class="ghost">Gerar relatório</button>
+        <button id="btnTree" class="ghost">Árvore de Soluções</button>
+      </div>
+      <!-- Árvore aparece abaixo do gráfico quando clicar no botão -->
+      <div class="tree" id="treeSection" style="display:none">
+        <h2>Árvore de Soluções - clique para explorar</h2>
+        <div id="tree"></div>
+        <div class="tree-actions" style="margin-top:12px">
+          <button id="btnPerspective" class="ghost">Perspectiva</button>
+        </div>
+        <!-- Seção de Perspectiva (inicia oculta) -->
+        <div class="perspective" id="perspectiveSection" style="display:none; margin-top:16px">
+          <img id="perspectiveGif" src="assets/nuvens_decisao2.gif" alt="Matriz de decisão — nuvens gaussianas (3D)" style="max-width:100%; height:auto; display:block; margin:0 auto 12px auto;" />
+          <p style="text-align:center; margin:8px 0; color:#b8b8b8">representações da matriz de decisão usada para filtrar as soluções conforme seus critérios</p>
+          <img id="perspectiveImg" src="assets/núvem 2D.png" alt="Matriz de decisão — 2D (Qualidade x Custo)" style="max-width:100%; height:auto; display:block; margin:12px auto 16px auto;" />
+          <div style="text-align:center; margin-top:8px">
+            <button id="btnRefine" class="ghost">Refinar Análise</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal Ok/Redefinir -->
+  <dialog id="confirmDlg">
+    <div class="dlg-content">
+      <p id="dlgText"></p>
+      <div class="dlg-actions">
+        <button id="dlgOk" class="primary">Ok</button>
+        <button id="dlgReset">Redefinir</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal de Informações da Solução -->
+  <dialog id="solutionModal">
+    <div class="modal-header">
+      <h2>Detalhes da Solução</h2>
+      <button id="closeModal" class="modal-close" aria-label="Fechar">×</button>
+    </div>
+    <div id="solutionModalContent" class="modal-content"></div>
+  </dialog>
+
+  <!-- Modal de Confirmação de Relatório -->
+  <dialog id="reportConfirmDlg">
+    <div class="dlg-content">
+      <p>Estou ciente que isto caracteriza um serviço de consultoria.</p>
+      <div class="dlg-actions">
+        <button id="reportConfirmOk" class="primary">Ok</button>
+        <button id="reportConfirmCancel">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p class="footer-project">um projeto motivado pelo Desafio SEG Automotive - DIP prof Ugo Ibusuki UFABC SBC 2025-3</p>
+    <img src="logo Noetika AI 2.png" alt="Noetika AI Logo" class="footer-logo" />
+    <p class="footer-text">Powered by Noetika AI - Gabriel R A S - 2025 - all rights reserved</p>
+  </footer>
+
+  <script src="tracking.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

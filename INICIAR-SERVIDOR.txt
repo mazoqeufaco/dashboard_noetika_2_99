@@ -1,0 +1,57 @@
+═══════════════════════════════════════════════════════════
+   COMO INICIAR O SERVIDOR - 3 MÉTODOS GARANTIDOS
+═══════════════════════════════════════════════════════════
+
+MÉTODO 1 - MAIS SIMPLES (RECOMENDADO):
+───────────────────────────────────────
+1. Dê duplo clique no arquivo: START.bat
+   (Uma janela vai abrir e você verá o servidor rodando)
+
+2. Acesse no navegador: http://localhost:8000
+
+
+MÉTODO 2 - PowerShell/Terminal:
+─────────────────────────────────
+Abra o PowerShell ou Terminal no diretório do projeto e digite:
+
+   npm run start:simple
+
+Ou diretamente:
+
+   node server-simple.js
+
+
+MÉTODO 3 - Se a porta 8000 estiver ocupada:
+────────────────────────────────────────────
+1. Primeiro, mate processos na porta:
+   npm run kill-port
+
+2. Depois inicie:
+   npm run start:simple
+
+
+═══════════════════════════════════════════════════════════
+VERIFICAÇÃO:
+═══════════════════════════════════════════════════════════
+
+Se você vir uma mensagem como:
+   ✅✅✅ SERVIDOR RODANDO! ✅✅✅
+   📍 Acesse: http://localhost:8000
+
+Então está funcionando! Abra o navegador e acesse essa URL.
+
+═══════════════════════════════════════════════════════════
+PROBLEMAS?
+═══════════════════════════════════════════════════════════
+
+- Se der erro de porta ocupada:
+  → Execute: npm run kill-port
+  
+- Se não tiver Node.js instalado:
+  → Instale de: https://nodejs.org/
+
+- Se precisar de ajuda:
+  → Verifique o arquivo README-SERVER.md
+
+═══════════════════════════════════════════════════════════
+
