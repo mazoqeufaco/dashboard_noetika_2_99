@@ -21,19 +21,6 @@ RUN apt-get update --fix-missing || apt-get update && \
 # Garante que pip está instalado e funcional
 RUN python3.11 -m ensurepip --upgrade --default-pip || true
 
-# Verifica instalações básicas (sem verificar pip diretamente, usamos python3 -m pip)
-RUN echo "=== Verificando Node.js ===" && \
-    node --version && \
-    npm --version && \
-    echo "=== Verificando Python ===" && \
-    python3.11 --version && \
-    python3 --version && \
-    python --version && \
-    which python3.11 && \
-    which python3 && \
-    which python && \
-    echo "✅ Verificações básicas concluídas"
-
 # Define diretório de trabalho
 WORKDIR /app
 
