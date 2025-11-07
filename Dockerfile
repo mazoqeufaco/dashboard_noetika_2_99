@@ -2,24 +2,23 @@
 # Usa imagem oficial do Node.js e adiciona Python
 FROM node:18-slim
 
-# Instala Python 3.11 e ferramentas necessárias
-# Adiciona retry logic para evitar falhas de rede
-RUN apt-get update --fix-missing || apt-get update && \
+# Instala Python 3 e ferramentas necessárias
+# Usa python3 padrão (geralmente 3.9+ no Debian) que é mais rápido de instalar
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        python3.11 \
-        python3.11-dev \
+        python3 \
+        python3-dev \
         python3-pip \
-        python3.11-venv \
+        python3-venv \
         curl \
         build-essential \
         ca-certificates && \
-    ln -sf /usr/bin/python3.11 /usr/bin/python && \
-    ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3 /usr/bin/python && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Garante que pip está instalado e funcional
-RUN python3.11 -m ensurepip --upgrade --default-pip || true
+RUN python3 -m ensurepip --upgrade --default-pip || true
 
 # Define diretório de trabalho
 WORKDIR /app
