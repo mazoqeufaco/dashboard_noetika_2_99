@@ -8,7 +8,7 @@ const BACKEND_PORT = 5000;
 const BACKEND_HOST = 'localhost';
 
 // Usa PORT do ambiente (Railway) ou padrão 8000 para desenvolvimento
-const DEFAULT_PORT = parseInt(process.env.PORT || 8000, 10);
+const DEFAULT_PORT = process.env.PORT || 8000;
 const MAX_PORT_TRIES = 10; // Tenta até 10 portas alternativas
 
 // Usa o diretório onde server.js está localizado
@@ -137,14 +137,6 @@ function createServer() {
 
 // Função para tentar iniciar o servidor em uma porta
 function startServer(port) {
-  // Garante que port é um número e válido
-  port = parseInt(port, 10);
-  if (isNaN(port) || port < 1 || port > 65535) {
-    console.error(`\n❌ Erro: Porta inválida: ${port}`);
-    console.error('   A porta deve ser um número entre 1 e 65535.\n');
-    process.exit(1);
-  }
-  
   const server = createServer();
   
   server.listen(port, '0.0.0.0', () => {
@@ -164,8 +156,7 @@ function startServer(port) {
     if (err.code === 'EADDRINUSE') {
       // Tenta próxima porta
       const nextPort = port + 1;
-      // Valida se a próxima porta não ultrapassa o limite e não excede MAX_PORT_TRIES
-      if (nextPort <= 65535 && nextPort <= DEFAULT_PORT + MAX_PORT_TRIES) {
+      if (nextPort <= DEFAULT_PORT + MAX_PORT_TRIES) {
         console.log(`⚠️  Porta ${port} em uso. Tentando porta ${nextPort}...`);
         // Fecha este servidor antes de tentar a próxima
         server.close();
