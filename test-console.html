@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <title>Teste Console</title>
+</head>
+<body>
+  <h1>Verifique o Console do Navegador</h1>
+  <p>Abra o DevTools (F12) e veja se há erros no console.</p>
+  <script>
+    console.log('Teste: JavaScript está carregando');
+    
+    // Testa se os elementos existem
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM carregado');
+      const canvas = document.getElementById('tri');
+      console.log('Canvas encontrado:', canvas ? 'SIM' : 'NÃO');
+      const script = document.querySelector('script[src="app.js"]');
+      console.log('Script app.js encontrado:', script ? 'SIM' : 'NÃO');
+    });
+  </script>
+</body>
+</html>
+

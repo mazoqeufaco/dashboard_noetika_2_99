@@ -1,0 +1,454 @@
+{
+  "versao": "v9.2-comercial",
+  "ultima_atualizacao": "2025-11-07",
+  "moeda": "BRL",
+
+  "ui_politicas": {
+    "modo_cliente_oculta_custos": true,
+    "mostrar_glossario": true,
+    "mostrar_legenda": true,
+    "mostrar_legenda_dupla": true,
+    "mostrar_preco": "cliente",
+    "campo_preco_cliente": "preco_cliente.preco_cliente_ano1_brl",
+    "campo_prazo_total": "prazos_dias.total",
+    "mostra_sigma": true
+  },
+
+  "definicoes": {
+    "como_calcular_custo_ano1": "custo_ano1_brl = capex_brl + 12 * opex_mensal_brl; preco_cliente_ano1_brl = preco_cliente.capex_brl + 12 * preco_cliente.opex_mensal_brl",
+    "regras_de_precificacao": "preco_cliente = custo * (1 + margem); margem_padrao = 0.25; itens com integração complexa podem usar margem 0.30",
+    "legendas": {
+      "🔵": "processamento fora da SEG (SaaS/fornecedor — com NDA/DPA)",
+      "🟢": "processamento dentro da SEG (on-prem/DMZ/infra interna)"
+    }
+  },
+
+  "premissas_gerais": {
+    "volume_ideias_dia_base": 100,
+    "situacao_atual_volume": "10–30 ideias/dia",
+    "licencas_fixas_tronco_II_mensal_brl": 820,
+    "margem_comercial_padrao_pct": 0.25,
+    "margem_itens_complexos_pct": 0.30,
+    "sigma_prazo_pct": { "tronco_I": 0.20, "tronco_II": 0.40, "tronco_III": 0.25 },
+    "observacoes": [
+      "Custo Ano 1 = capex + 12 × opex; Preço Ano 1 (Cliente) = preco.capex + 12 × preco.opex.",
+      "SaaS/IA gerenciada usam 🔵 (dados processados fora, sob NDA/DPA). Itens DMZ/on-prem usam 🟢 (dados processados dentro da SEG).",
+      "Esta versão mantém 12 linhas ativas (I.1–I.3; II.1.a–II.1.b; II.2.a–II.2.b; III.1.a–III.2.c) com prazos padronizados em todos os itens."
+    ]
+  },
+
+  "margens_aplicadas": {
+    "tronco_I": "25% (CAPEX + OPEX)",
+    "tronco_II": "25% (CAPEX + OPEX)",
+    "tronco_III": "40% CAPEX, 30% OPEX"
+  },
+
+  "explicacoes_para_leigos": {
+    "acesso_24x7_neurociencia": "Ideias boas surgem fora do expediente (no ônibus, no banho, antes de dormir). Um canal simples e 24/7 aumenta o registro desses insights e, portanto, o volume e a qualidade da inovação.",
+    "governanca_dos_dados": "Quem guarda e processa seus dados? Se ficam com fornecedores, há proteção por contrato (NDA/DPA). Se 'dormem' na empresa, o controle e a auditoria são maiores.",
+    "nda_dpa": "NDA = acordo de confidencialidade; DPA = acordo de proteção de dados. Limitam por contrato como o fornecedor pode usar os dados.",
+    "pii": "Informações pessoais identificáveis (nome, e-mail corporativo etc.). Evitamos coletar ou anonimizamos antes de enviar a um provedor de IA.",
+    "anonimizacao": "Mascarar/remover PII antes de enviar texto para a IA. Reduz risco e facilita conformidade.",
+    "dmz": "DMZ é uma zona segura de rede (como a portaria da fábrica). Publica serviços com mais controle e aprovações — pode alongar prazos.",
+    "lock_in": "Dependência forte de um fornecedor. Mudar depois pode custar tempo e dinheiro.",
+    "dados_dormem": "Local padrão de armazenamento ('em repouso'): na empresa (maior controle) ou no fornecedor (maior conveniência)."
+  },
+
+  "legenda_dupla_governanca": {
+    "captura": "Onde o colaborador envia a ideia (pode ser externo 24/7 ou interno/limitado).",
+    "processamento": "Onde o texto é processado e armazenado por padrão (dados em repouso)."
+  },
+
+  "glossario": {
+    "neurociencia_engajamento": "Boas ideias surgem quando a mente relaxa; um canal 24/7 aumenta o registro dos insights.",
+    "dmz": "Zona desmilitarizada de rede da empresa (mais controles e aprovações).",
+    "nda_dpa": "Acordos de confidencialidade e proteção de dados com fornecedores.",
+    "pii": "Dados pessoais identificáveis.",
+    "llm": "Modelo de linguagem usado para classificar, rotular e comparar textos.",
+    "banco_vetorial": "Índice que guarda vetores (representações numéricas) de textos para medir similaridade.",
+    "anonimizacao": "Camada que remove/mascara PII antes do envio à IA.",
+    "uat": "Teste de aceitação pelo usuário.",
+    "sigma_prazo": "Incerteza percentual do prazo estimado por tronco."
+  },
+
+  "criterios_de_decisao": [
+    { "criterio": "Impacto na eliminação do backlog", "peso": 0.25 },
+    { "criterio": "Tempo de retorno ao colaborador", "peso": 0.20 },
+    { "criterio": "Risco de lock-in", "peso": 0.10 },
+    { "criterio": "Aderência à LGPD e governança", "peso": 0.15 },
+    { "criterio": "Custo total ano 1", "peso": 0.15 },
+    { "criterio": "Facilidade de implantação (DMZ/integrações)", "peso": 0.15 }
+  ],
+
+  "campos_novos_por_item": {
+    "faq_leigo": [
+      { "pergunta": "O que ganhamos com acesso externo 24/7?", "resposta": "Mais ideias registradas, inclusive fora do expediente. Isso alimenta o funil de inovação sem aumentar reuniões." },
+      { "pergunta": "Onde os dados ficam?", "resposta": "Depende da linha. Quando '🔵', processamos fora com contrato (NDA/DPA). Quando '🟢', os dados ficam na SEG, com auditoria interna." },
+      { "pergunta": "O que é DMZ e por que pode atrasar?", "resposta": "É uma área de rede mais controlada. Garante segurança, mas exige aprovações extras; por isso alguns prazos são maiores." }
+    ]
+  },
+
+  "mapeamento_sinais": {
+    "I.1":    { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true },
+    "I.2":    { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true, "processamento_hibrido_opcional": true },
+    "I.3":    { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true },
+
+    "II.1.a": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true },
+    "II.1.b": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true },
+    "II.2.a": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true, "anonimizacao": true },
+    "II.2.b": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true, "anonimizacao_expandida": true },
+
+    "III.1.a": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true },
+    "III.1.b": { "captura": "🔵", "processamento": "🟢", "acesso_externo_24x7": true },
+    "III.2.a": { "captura": "🟢", "processamento": "🟢", "acesso_restrito": "terminais/horários de fábrica" },
+    "III.2.b": { "captura": "🟢", "processamento": "🟢", "acesso_restrito": "terminais/horários de fábrica" },
+    "III.2.c": { "captura": "🔵", "processamento": "🔵", "acesso_externo_24x7": true }
+  },
+
+  "ofertas_comerciais": [
+    { "pacote": "Essencial", "linhas": ["III.1.a"], "descricao": "Captura 24/7 externa + IA própria no servidor do fornecedor; ideal para provar valor rápido.", "preco_ano1_brl": 115118 },
+    { "pacote": "Avancado", "linhas": ["III.2.a"], "descricao": "Arquitetura interna modular (100% processamento na SEG), painel e duplicatas.", "preco_ano1_brl": 169380 },
+    { "pacote": "Completo", "linhas": ["III.2.b"], "descricao": "Operação plena on-prem com auditoria total e independência.", "preco_ano1_brl": 244323 }
+  ],
+
+  "controle_de_versao": {
+    "numero_total_de_linhas_ativas": 12,
+    "linhas_ativas": ["I.1","I.2","I.3","II.1.a","II.1.b","II.2.a","II.2.b","III.1.a","III.1.b","III.2.a","III.2.b","III.2.c"]
+  },
+
+  "itens_resumo_ano1": [
+    { "id": "I.1",     "custo_ano1_brl": 216040,   "preco_cliente_ano1_brl": 270050 },
+    { "id": "I.2",     "custo_ano1_brl": 674000,   "preco_cliente_ano1_brl": 842500 },
+    { "id": "I.3",     "custo_ano1_brl": 961000,   "preco_cliente_ano1_brl": 1201250 },
+    { "id": "II.1.a",  "custo_ano1_brl": 19400,    "preco_cliente_ano1_brl": 24250 },
+    { "id": "II.1.b",  "custo_ano1_brl": 25600,    "preco_cliente_ano1_brl": 32000 },
+    { "id": "II.2.a",  "custo_ano1_brl": 61600,    "preco_cliente_ano1_brl": 77000 },
+    { "id": "II.2.b",  "custo_ano1_brl": 74400,    "preco_cliente_ano1_brl": 93000 },
+    { "id": "III.1.a", "custo_ano1_brl": 87370,    "preco_cliente_ano1_brl": 115118 },
+    { "id": "III.1.b", "custo_ano1_brl": 111033,   "preco_cliente_ano1_brl": 147046 },
+    { "id": "III.2.a", "custo_ano1_brl": 125100,   "preco_cliente_ano1_brl": 169380 },
+    { "id": "III.2.b", "custo_ano1_brl": 179231,   "preco_cliente_ano1_brl": 244323 },
+    { "id": "III.2.c", "custo_ano1_brl": 175527,   "preco_cliente_ano1_brl": 240698 }
+  ],
+
+  "politica_sla_e_escopo": {
+    "sla_padrao": {
+      "classe_SaaS_tronco_I_II": { "disponibilidade": "≥ 99,0%", "janela_suporte": "8x5", "primeira_resposta": "até 8h úteis" },
+      "classe_onprem_tronco_III": { "disponibilidade": "≥ 98,5% (piloto)", "janela_suporte": "8x5 (hora estendida sob demanda)", "primeira_resposta": "até 4h úteis" }
+    },
+    "limites_de_escopo_gerais": [
+      "Até 2 integrações leves (ex.: e-mail + planilha) no MVP de cada linha",
+      "Até 3 perfis de usuário (autor, avaliador, coordenação)",
+      "Catálogo inicial de até 30 categorias de ideias",
+      "Até 2 ciclos de ajuste de prompts/taxonomia no MVP"
+    ]
+  },
+
+  "itens": [
+    {
+      "id": "I.1",
+      "nome_curto": "SaaS ideias — genérica",
+      "linha": "I",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Plataforma de gestão de ideias pronta (tipo “caixa de sugestões” moderna) com formulários, status e relatórios padrão. Rápida de ativar, mas com pouca lógica de unicidade avançada.",
+      "capex_brl": 72040,
+      "opex_mensal_brl": 12000,
+      "custo_ano1_brl": 216040,
+      "preco_cliente": { "capex_brl": 90050, "opex_mensal_brl": 15000, "preco_cliente_ano1_brl": 270050 },
+      "capex_fonte": "estimativa de SaaS prateleira",
+      "opex_fonte": "tabela SaaS prateleira",
+      "processamento_dados": { "onde": "Fornecedor (cloud do SaaS)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor" },
+      "retorno_estimado": "Organiza fila e status; não resolve bem duplicatas.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Média", "organizacional": "Alta", "riscos": ["lock_in","customização limitada"] },
+      "riscos_chave": ["Detecção de duplicatas fraca", "Dificuldade de adaptar bonificações/critérios internos"],
+      "dependencias": ["Criação de contas/usuários", "Integração SSO (opcional)"],
+      "escopo": ["Cadastro de ideias", "Acompanhamento de status", "Relatórios básicos"],
+      "saidas_esperadas": ["Fila organizada", "Indicadores simples de engajamento"],
+      "maturidade": "Pronto de prateleira",
+      "prazos_dias": { "implantacao": 45, "testes_UAT": 15, "total": 60, "sigma": 12 },
+      "prazo_estimado_liberacao_dias": 60,
+      "indicadores": ["% ideias com status definido", "Tempo médio até 1º retorno"]
+    },
+
+    {
+      "id": "I.2",
+      "nome_curto": "Salesforce Idea Management",
+      "linha": "I",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Uso do módulo de ideias do Salesforce. Forte em workflow e integrações; custo elevado; IA/duplicatas requer add-ons/licenças. Possui opção de processamento híbrido/local.",
+      "capex_brl": 254000,
+      "opex_mensal_brl": 35000,
+      "custo_ano1_brl": 674000,
+      "preco_cliente": { "capex_brl": 317500, "opex_mensal_brl": 43750, "preco_cliente_ano1_brl": 842500 },
+      "capex_fonte": "benchmark Salesforce",
+      "opex_fonte": "benchmark Salesforce",
+      "processamento_dados": { "onde": "Fornecedor (Salesforce cloud) com opção híbrida", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor/SEG (híbrido opcional)" },
+      "caracteristicas_avancadas": {
+        "expansao_automacao_plim": true,
+        "descricao": "Permite automatizar outras etapas do PLIM (aprovação, bonificação, integração com RH e relatórios).",
+        "processamento_hibrido": true,
+        "descricao_processamento_hibrido": "Parte do processamento pode ocorrer localmente via conectores/Private Connect, mantendo NDA/DPA."
+      },
+      "retorno_estimado": "Governança forte e integrações; custo pode inviabilizar MVP.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Baixa", "organizacional": "Média", "riscos": ["lock_in alto","custo recorrente"] },
+      "riscos_chave": ["Custo por usuário", "Customizações demoradas"],
+      "dependencias": ["Licenças", "SSO", "Conectores internos"],
+      "escopo": ["Ideias", "Avaliação", "Relatórios integrados"],
+      "saidas_esperadas": ["Governança corporativa", "Trilha de auditoria"],
+      "maturidade": "Enterprise",
+      "prazos_dias": { "implantacao": 60, "testes_UAT": 20, "total": 80, "sigma": 16 },
+      "prazo_estimado_liberacao_dias": 80,
+      "indicadores": ["% duplicatas mescladas", "SLA de retorno ao autor"]
+    },
+
+    {
+      "id": "I.3",
+      "nome_curto": "ServiceNow Idea Portal",
+      "linha": "I",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Portal de ideias na suíte ServiceNow, bom para acionar times e medir SLAs; custo alto e menor flexibilidade de IA na base.",
+      "capex_brl": 361000,
+      "opex_mensal_brl": 50000,
+      "custo_ano1_brl": 961000,
+      "preco_cliente": { "capex_brl": 451250, "opex_mensal_brl": 62500, "preco_cliente_ano1_brl": 1201250 },
+      "capex_fonte": "benchmark ServiceNow",
+      "opex_fonte": "benchmark ServiceNow",
+      "processamento_dados": { "onde": "Fornecedor (ServiceNow cloud)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor" },
+      "retorno_estimado": "Visibilidade e SLAs; IA semântica depende de add-ons.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Baixa", "organizacional": "Média", "riscos": ["lock_in","licenciamento complexo"] },
+      "riscos_chave": ["Custo total elevado", "Backlog sem triagem semântica rica"],
+      "dependencias": ["Licenças", "Mapeamento de fluxo de aprovação"],
+      "escopo": ["Ideias", "Tarefas", "SLAs e relatórios"],
+      "saidas_esperadas": ["Rastreabilidade formal", "Medição de prazos"],
+      "maturidade": "Enterprise",
+      "prazos_dias": { "implantacao": 75, "testes_UAT": 25, "total": 100, "sigma": 20 },
+      "prazo_estimado_liberacao_dias": 100,
+      "indicadores": ["Tempo de ciclo (ideia→decisão)", "Cumprimento de SLA"]
+    },
+
+    {
+      "id": "II.1.a",
+      "nome_curto": "MVP sem anonimização — perfil A",
+      "linha": "II",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Chat com LLM para classificar ideias e dar um primeiro retorno. Acesso externo sem login, LLM cobra identificação do funcionário na conversa. Possibilidade de encaminhamento automatico de ideias validas por email para avaliadores de cada área. Sem anonimização automática.",
+      "capex_brl": 5000,
+      "opex_mensal_brl": 1200,
+      "custo_ano1_brl": 19400,
+      "preco_cliente": { "capex_brl": 6250, "opex_mensal_brl": 1500, "preco_cliente_ano1_brl": 24250 },
+      "capex_fonte": "estimativa MVP leve",
+      "opex_fonte": "licenças IA + infra mínima",
+      "processamento_dados": { "onde": "Fornecedor (IA gerenciada)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor" },
+      "retorno_estimado": "Cai backlog inicial e retorna em segundos, com rótulos preliminares.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Alta", "organizacional": "Alta", "riscos": ["qualidade de rótulos no começo"] },
+      "riscos_chave": ["Feedback raso nos primeiros dias", "Necessidade de calibrar categorias"],
+      "dependencias": ["Prompt e taxonomia inicial", "Planilha de treino mínima"],
+      "escopo": ["Coleta", "Classificação automática", "Resposta imediata ao autor"],
+      "saidas_esperadas": ["Redução de backlog", "Tempo de resposta < 1 min"],
+      "maturidade": "Protótipo funcional",
+      "prazos_dias": { "implantacao": 6, "testes_UAT": 4, "total": 10, "sigma": 4 },
+      "prazo_estimado_liberacao_dias": 10,
+      "indicadores": ["% de ideias com categoria", "Satisfação do autor"]
+    },
+
+    {
+      "id": "II.1.b",
+      "nome_curto": "MVP sem anonimização — perfil B",
+      "linha": "II",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Mesmo MVP com ajustes de linguagem/UX (ex.: setores administrativos) e critérios de resposta ligeiramente diferentes.",
+      "capex_brl": 10000,
+      "opex_mensal_brl": 1300,
+      "custo_ano1_brl": 25600,
+      "preco_cliente": { "capex_brl": 12500, "opex_mensal_brl": 1625, "preco_cliente_ano1_brl": 32000 },
+      "capex_fonte": "ajuste UX + escopo",
+      "opex_fonte": "licenças IA + infraestrutura leve",
+      "processamento_dados": { "onde": "Fornecedor (IA gerenciada)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor" },
+      "retorno_estimado": "Feedback mais aderente por persona/setor.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Alta", "organizacional": "Alta", "riscos": ["ajuste fino de taxonomias"] },
+      "riscos_chave": ["Ruído em textos longos", "Ambiguidade de categorias"],
+      "dependencias": ["Aprovação de tom de voz", "Glossário corporativo"],
+      "escopo": ["Coleta", "Classificação", "Auto-resposta customizada"],
+      "saidas_esperadas": ["Backlog cai com mais precisão", "Feedback útil ao colaborador"],
+      "maturidade": "Protótipo funcional",
+      "prazos_dias": { "implantacao": 10, "testes_UAT": 5, "total": 15, "sigma": 6 },
+      "prazo_estimado_liberacao_dias": 15,
+      "indicadores": ["% duplicatas sinalizadas", "Tempo de triagem por ideia"]
+    },
+
+    {
+      "id": "II.2.a",
+      "nome_curto": "MVP com anonimização (landing + backend)",
+      "linha": "II",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Inclui camada que remove PII automaticamente antes do texto ir para a API de IA. Acesso externo seguro com login/senha reduz riscos e permite abrir o canal fora da rede da fábrica 24x7.",
+      "capex_brl": 28000,
+      "opex_mensal_brl": 2800,
+      "custo_ano1_brl": 61600,
+      "preco_cliente": { "capex_brl": 35000, "opex_mensal_brl": 3500, "preco_cliente_ano1_brl": 77000 },
+      "capex_fonte": "engenharia de anonimização + landing",
+      "opex_fonte": "IA gerenciada + monitoramento leve",
+      "processamento_dados": { "onde": "Fornecedor (IA gerenciada, com anonimização antes)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor (texto sem PII)" },
+      "retorno_estimado": "Conformidade reforçada e adesão maior de colaboradores.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Alta", "organizacional": "Alta", "riscos": ["falsos positivos de anonimização"] },
+      "riscos_chave": ["Mascarar demais e perder contexto", "Manter dicionário de termos internos"],
+      "dependencias": ["Pipeline de anonimização", "Tabela de PII/regex", "Teste de UX"],
+      "escopo": ["Coleta", "Anonimização", "Classificação", "Auto-resposta"],
+      "saidas_esperadas": ["Conformidade", "Aumento de participação"],
+      "maturidade": "Piloto com segurança",
+      "prazos_dias": { "implantacao": 16, "testes_UAT": 8, "total": 24, "sigma": 10 },
+      "prazo_estimado_liberacao_dias": 24,
+      "indicadores": ["Taxa de PII detectada", "% re-roteado p/ revisão humana"]
+    },
+
+    {
+      "id": "II.2.b",
+      "nome_curto": "MVP com anonimização expandida",
+      "linha": "II",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Camada dupla de anonimização (texto e metadados) com auditoria e relatórios. Acesso externo 24/7 sob NDA/DPA; ideal para contextos com dados sensíveis.",
+      "capex_brl": 36000,
+      "opex_mensal_brl": 3200,
+      "custo_ano1_brl": 74400,
+      "preco_cliente": { "capex_brl": 45000, "opex_mensal_brl": 4000, "preco_cliente_ano1_brl": 93000 },
+      "capex_fonte": "incremento de engenharia (anonimização dupla + trilhas de auditoria)",
+      "opex_fonte": "IA gerenciada + observabilidade adicional",
+      "processamento_dados": { "onde": "Fornecedor (IA gerenciada, ambiente seguro)", "contratos": ["NDA","DPA","logs de auditoria"], "dados_dormem": "fornecedor (texto e metadados anonimizados)" },
+      "retorno_estimado": "Conformidade elevada e melhor governança com trilhas de auditoria.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Alta", "organizacional": "Alta", "riscos": ["falsos negativos/positivos de anonimização","manutenção de dicionários"] },
+      "riscos_chave": ["Acurácia da anonimização expandida", "Custo operacional dos logs"],
+      "dependencias": ["Catálogo de PII/regex", "Pipelines para metadados", "Revisão de auditoria"],
+      "escopo": ["Coleta", "Anonimização dupla", "Classificação", "Relatórios de conformidade"],
+      "saidas_esperadas": ["Risco reduzido", "Evidências de conformidade"],
+      "maturidade": "Piloto avançado",
+      "prazos_dias": { "implantacao": 18, "testes_UAT": 10, "total": 28, "sigma": 11 },
+      "prazo_estimado_liberacao_dias": 28,
+      "indicadores": ["% PII removida", "% casos auditados com sucesso"]
+    },
+
+    {
+      "id": "III.1.a",
+      "nome_curto": "MVP com IA própria — mini cluster no site da Noetika AI",
+      "linha": "III",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Site da Noetika AI com login seguro para funcionários da SEG. IA própria embutida (Ollama ou similar) roda no backend desse site, sem depender de APIs externas. Permite testar desempenho e privacidade sob NDA/DPA. Testes cabíveis antes de migrar para a rede interna.",
+      "capex_brl": 15370,
+      "opex_mensal_brl": 6000,
+      "custo_ano1_brl": 87370,
+      "preco_cliente": { "capex_brl": 21518, "opex_mensal_brl": 7800, "preco_cliente_ano1_brl": 115118 },
+      "capex_fonte": "prints/quotations de freelance + hardware/VM",
+      "opex_fonte": "suporte + energia + manutenção leve",
+      "processamento_dados": { "onde": "Servidor dedicado do fornecedor (seu)", "contratos": ["NDA","DPA"], "dados_dormem": "fornecedor (ambiente dedicado e seguro)" },
+      "retorno_estimado": "Independência de APIs externas e prova rápida de valor.",
+      "viabilidade_preliminar": { "tecnica": "Média", "economica": "Alta", "organizacional": "Média", "riscos": ["capacidade de TI do fornecedor","MLOps"] },
+      "riscos_chave": ["Atualização de modelos", "Observabilidade no servidor dedicado"],
+      "dependencias": ["Servidor/VM", "Proxy seguro", "Backups/segurança"],
+      "escopo": ["Coleta 24/7", "IA própria", "Classificação", "Resposta", "Logs privados"],
+      "saidas_esperadas": ["Privacidade melhor que SaaS puro", "Custo sob controle"],
+      "maturidade": "Prova de conceito externa segura",
+      "prazos_dias": { "implantacao": 18, "testes_UAT": 7, "total": 25, "sigma": 6 },
+      "prazo_estimado_liberacao_dias": 25,
+      "indicadores": ["Custo por 1k ideias", "Latência de inferência"]
+    },
+
+    {
+      "id": "III.1.b",
+      "nome_curto": "PLIM 2.0 em DMZ na SEG",
+      "linha": "III",
+      "sinal_dados": "🟢",
+      "descricao_para_leigos": "Portal novo com classificação automática e fluxos de aprovação dentro da DMZ. Demanda aprovações de TI/rede.",
+      "capex_brl": 27033,
+      "opex_mensal_brl": 7000,
+      "custo_ano1_brl": 111033,
+      "preco_cliente": { "capex_brl": 37846, "opex_mensal_brl": 9100, "preco_cliente_ano1_brl": 147046 },
+      "capex_fonte": "engenharia web + DMZ",
+      "opex_fonte": "sustentação on-prem + observabilidade",
+      "processamento_dados": { "onde": "SEG (DMZ)", "contratos": ["políticas internas SEG"], "dados_dormem": "SEG (DMZ)" },
+      "retorno_estimado": "Retorno imediato ao autor e governança interna.",
+      "viabilidade_preliminar": { "tecnica": "Média-Alta", "economica": "Alta", "organizacional": "Média", "riscos": ["fila de mudanças/DMZ"] },
+      "riscos_chave": ["Lead time de mudanças", "Gestão de incidentes"],
+      "dependencias": ["Parecer de segurança", "DevOps", "Integração AD/SSO"],
+      "escopo": ["Formulário", "Classificação", "Regras de avaliação", "Relatórios"],
+      "saidas_esperadas": ["Resposta rápida", "Fila por prioridade/área"],
+      "maturidade": "Projeto conceitual aprovado",
+      "prazos_dias": { "implantacao": 22, "testes_UAT": 10, "total": 32, "sigma": 8 },
+      "prazo_estimado_liberacao_dias": 32,
+      "indicadores": ["Tempo de aprovação de change", "% disponibilidade"]
+    },
+
+    {
+      "id": "III.2.a",
+      "nome_curto": "PLIM 1.5 na SEG (híbrido modular, 100% processamento na SEG)",
+      "linha": "III",
+      "sinal_dados": "🟢",
+      "descricao_para_leigos": "Arquitetura interna modular: captura interna (terminais/horários), processamento 100% na SEG. Pode evoluir por módulos sem depender de fornecedor externo.",
+      "capex_brl": 67500,
+      "opex_mensal_brl": 4800,
+      "custo_ano1_brl": 125100,
+      "preco_cliente": { "capex_brl": 94500, "opex_mensal_brl": 6240, "preco_cliente_ano1_brl": 169380 },
+      "capex_fonte": "engenharia modular + gateway",
+      "opex_fonte": "observabilidade + serviços internos",
+      "processamento_dados": { "onde": "SEG (100% processamento interno)", "contratos": ["políticas internas SEG"], "dados_dormem": "SEG" },
+      "retorno_estimado": "Backlog zera e painel de duplicatas dá transparência.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Média-Alta", "organizacional": "Média", "riscos": ["complexidade de integração interna"] },
+      "riscos_chave": ["Orquestração entre serviços", "Capacidade de sustentação"],
+      "dependencias": ["Gateway/API", "Observabilidade", "Runbooks internos"],
+      "escopo": ["Portal", "Classificação", "Painel de duplicatas", "KPIs de engajamento"],
+      "saidas_esperadas": ["Backlog zerado", "Transparência de status"],
+      "maturidade": "Projeto conceitual + piloto",
+      "prazos_dias": { "implantacao": 14, "testes_UAT": 6, "total": 20, "sigma": 5 },
+      "prazo_estimado_liberacao_dias": 20,
+      "indicadores": ["% ideias deduplicadas", "Tempo de fila por prioridade"]
+    },
+
+    {
+      "id": "III.2.b",
+      "nome_curto": "PLIM 2.0 na SEG (on-prem)",
+      "linha": "III",
+      "sinal_dados": "🟢",
+      "descricao_para_leigos": "Tudo dentro da SEG: coleta, IA, banco de dados e relatórios. Máximo controle e auditoria, custo inicial maior.",
+      "capex_brl": 113231,
+      "opex_mensal_brl": 5500,
+      "custo_ano1_brl": 179231,
+      "preco_cliente": { "capex_brl": 158523, "opex_mensal_brl": 7150, "preco_cliente_ano1_brl": 244323 },
+      "capex_fonte": "prints/quotations de freelance + infraestrutura on-prem",
+      "opex_fonte": "time de sustentação + energia + backups",
+      "processamento_dados": { "onde": "SEG (on-prem)", "contratos": ["políticas internas SEG"], "dados_dormem": "SEG" },
+      "retorno_estimado": "Privacidade máxima e menor lock-in.",
+      "viabilidade_preliminar": { "tecnica": "Média-Alta", "economica": "Média", "organizacional": "Média", "riscos": ["capacidade de sustentação interna"] },
+      "riscos_chave": ["Equipe para operar", "Atualizações de modelos/hardware"],
+      "dependencias": ["Infra on-prem", "Segurança/backup", "Time de sustentação"],
+      "escopo": ["Portal completo", "IA local", "Fluxos de avaliação", "Relatórios avançados"],
+      "saidas_esperadas": ["Controle total", "Custo por uso sob controle"],
+      "maturidade": "Planejamento executivo",
+      "prazos_dias": { "implantacao": 18, "testes_UAT": 7, "total": 25, "sigma": 6 },
+      "prazo_estimado_liberacao_dias": 25,
+      "indicadores": ["TCO", "SLA interno de suporte"]
+    },
+
+    {
+      "id": "III.2.c",
+      "nome_curto": "PLIM 2.0 externo (cloud dedicada)",
+      "linha": "III",
+      "sinal_dados": "🔵",
+      "descricao_para_leigos": "Ambiente dedicado gerenciado por parceiro, com contrato forte de segurança. Menos carga para TI interna, risco de lock-in maior.",
+      "capex_brl": 125127,
+      "opex_mensal_brl": 4200,
+      "custo_ano1_brl": 175527,
+      "preco_cliente": { "capex_brl": 175178, "opex_mensal_brl": 5460, "preco_cliente_ano1_brl": 240698 },
+      "capex_fonte": "parceiro cloud dedicada + setup",
+      "opex_fonte": "gestão terceirizada + observabilidade",
+      "processamento_dados": { "onde": "Cloud dedicada do parceiro", "contratos": ["NDA","DPA","SLA"], "dados_dormem": "fornecedor (ambiente dedicado)" },
+      "retorno_estimado": "Agilidade de evolução e SLA terceirizado.",
+      "viabilidade_preliminar": { "tecnica": "Alta", "economica": "Média", "organizacional": "Alta", "riscos": ["lock_in médio/alto"] },
+      "riscos_chave": ["Dependência de parceiro", "Custo de saída/migração"],
+      "dependencias": ["Contrato/SLA", "Observabilidade", "Runbooks de contingência"],
+      "escopo": ["Portal completo", "IA dedicada", "Integrações e dashboards"],
+      "saidas_esperadas": ["SLA de operação", "Agilidade de releases"],
+      "maturidade": "Proposta técnica",
+      "prazos_dias": { "implantacao": 14, "testes_UAT": 7, "total": 21, "sigma": 5 },
+      "prazo_estimado_liberacao_dias": 21,
+      "indicadores": ["% incidentes no SLA", "Custo por 1k ideias processadas"]
+    }
+  ]
+}
